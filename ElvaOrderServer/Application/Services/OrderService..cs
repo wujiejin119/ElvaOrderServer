@@ -32,6 +32,11 @@ namespace ElvaOrderServer.Application.Services
                 _logger.LogInformation("Order created: {OrderId}", order.Id);
                 return new CreateOrderResponse { OrderId = order.Id };
             }
+            catch (DomainException ex)
+            {
+                _logger.LogWarning("Domain validation failed: {Message}", ex.Message);
+                throw;
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating order");
