@@ -29,7 +29,6 @@ namespace ElvaOrderServer.API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [Consumes("application/json")]
         [Produces("application/json")]
         public async Task<IActionResult> CreateOrder([FromBody] CreateOrderRequest request)
@@ -55,7 +54,6 @@ namespace ElvaOrderServer.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [Produces("application/json")]
         public async Task<IActionResult> GetOrder(Guid id)
         {
