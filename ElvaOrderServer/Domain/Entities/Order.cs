@@ -5,7 +5,7 @@ namespace ElvaOrderServer.Domain.Entities
     public class Order
     {
         public Guid Id { get; set; } = Guid.NewGuid();
-        public string CustomerName { get; set; } = null!;
+        public Guid CustomerId { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public ICollection<OrderItem> Items { get; set; } = new List<OrderItem>();
 
@@ -16,12 +16,6 @@ namespace ElvaOrderServer.Domain.Entities
             {
                 throw new DomainException("Quantity must be greater than zero");
             }
-
-            if (Items.Any(i => i.ProductId == item.ProductId))
-            {
-                throw new DomainException($"Product {item.ProductId} already exists in the order");
-            }
-
             Items.Add(item);
         }
     }

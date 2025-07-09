@@ -1,4 +1,4 @@
-using ElvaOrderServer.API.Middleware;
+using ElvaOrderServer.API.Exceptions;
 using ElvaOrderServer.Application.Services;
 using ElvaOrderServer.Infrastructure.Persistence;
 using ElvaOrderServer.Infrastructure.Repositories;
@@ -13,7 +13,7 @@ public class Program
         // Add services to the container.
         builder.Services.AddDbContext<OrdersDbContext>(options =>
         options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-      
+
         builder.Services.AddScoped<IOrderRepository, OrderRepository>();
         builder.Services.AddScoped<IOrderService, OrderService>();
         builder.Services.AddAutoMapper(typeof(Program));
@@ -24,16 +24,17 @@ public class Program
 
         var app = builder.Build();
 
+        app.UseMiddleware<ExceptionHandlingMiddleware>();
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
         {
             app.UseSwagger();
             app.UseSwaggerUI();
         }
+        //app.UseRouting();
 
+        
         app.UseAuthorization();
-
-        app.UseMiddleware<ExceptionHandlingMiddleware>();
 
         app.MapControllers();
 

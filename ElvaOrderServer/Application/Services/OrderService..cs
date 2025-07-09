@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using ElvaOrderServer.Application.DTOs;
+using ElvaOrderServer.Domain.Constants;
 using ElvaOrderServer.Domain.Entities;
 using ElvaOrderServer.Domain.Exceptions;
 using ElvaOrderServer.Infrastructure.Repositories;
@@ -26,8 +27,11 @@ namespace ElvaOrderServer.Application.Services
         {
             try
             {
-                var order = _mapper.Map<Order>(request);
+                Order order = _mapper.Map<Order>(request);
                 await _orderRepository.AddAsync(order);
+
+                validateFields(order);
+
 
                 _logger.LogInformation("Order created: {OrderId}", order.Id);
                 return new CreateOrderResponse { OrderId = order.Id };
@@ -51,10 +55,41 @@ namespace ElvaOrderServer.Application.Services
             if (order is null)
             {
                 _logger.LogWarning("Order not found: {OrderId}", id);
-                throw new OrderNotFoundException(id);
+                throw new AppException("Order not found", ErrorTypes.NotFound);
             }
 
             return _mapper.Map<OrderDto>(order);
+        }
+
+        private void validateFields(Order order) {
+            Guid nonExistGuid = Guid.Parse("3fa85f64-5717-4562-b3fc-2c963f66afa4");
+            // Should connect DB but use a non-exist guid just for demo
+            // if (!await _customerRepository.ExistsAsync(customerId))
+            //if (!await _productRepository.ExistsAsync(item.ProductId))
+
+
+            if (order.CustomerId.Equals(nonExistGuid)|| (order.CustomerId.Equals(Guid.Empty)))
+            {
+                _logger.LogError("Customer not found");
+                throw new AppException("Customer not found", ErrorTypes.NotFound);
+            }
+
+            if (order.Items.Any(item => item.ProductId.Equals(nonExistGuid) || item.ProductId.Equals(Guid.Empty) ))// not 00000000-0000-0000-0000-000000000000
+            {
+                _logger.LogError("Product not found");
+                throw new AppException("Product not found", ErrorTypes.NotFound);
+            }
+
+            var hasDuplicates = order.Items
+                .GroupBy(item => item.ProductId)
+                .Any(group => group.Count() > 1);
+
+            if (hasDuplicates)
+            {
+                _logger.LogError("duplicate product");
+                throw new AppException("Product not found", ErrorTypes.InvalidParameter);
+            }
+
         }
     }
 }

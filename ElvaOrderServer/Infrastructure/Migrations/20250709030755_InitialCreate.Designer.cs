@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ElvaOrderServer.Infrastructure.Migrations
 {
     [DbContext(typeof(OrdersDbContext))]
-    [Migration("20250708102237_InitialCreate")]
+    [Migration("20250709030755_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -34,10 +34,8 @@ namespace ElvaOrderServer.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("CustomerName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
@@ -48,13 +46,13 @@ namespace ElvaOrderServer.Infrastructure.Migrations
                         {
                             Id = new Guid("a8b3c7d0-9e1f-4a6b-8c3d-2e5f4a6b8c9d"),
                             CreatedAt = new DateTime(2023, 6, 15, 10, 30, 0, 0, DateTimeKind.Utc),
-                            CustomerName = "John Smith"
+                            CustomerId = new Guid("c1d2e3f4-5a6b-7c8d-9e0f-1a2b3c4d5e6f")
                         },
                         new
                         {
                             Id = new Guid("b9c4d8e1-0f2a-5b7c-9d3e-1f6a7b8c9d0e"),
                             CreatedAt = new DateTime(2023, 6, 16, 14, 45, 0, 0, DateTimeKind.Utc),
-                            CustomerName = "Emma Johnson"
+                            CustomerId = new Guid("d3e4f5a6-7b8c-9d0e-1f2a-3b4c5d6e7f8a")
                         });
                 });
 

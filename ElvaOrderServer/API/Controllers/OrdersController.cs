@@ -1,8 +1,6 @@
 ﻿using ElvaOrderServer.Application.DTOs;
 using ElvaOrderServer.Application.Services;
-using ElvaOrderServer.Domain.Exceptions;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace ElvaOrderServer.API.Controllers
 {
@@ -30,6 +28,10 @@ namespace ElvaOrderServer.API.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [Consumes("application/json")]
+        [Produces("application/json")]
         public async Task<IActionResult> CreateOrder([FromBody] CreateOrderRequest request)
         {
             try
@@ -37,14 +39,10 @@ namespace ElvaOrderServer.API.Controllers
                 var response = await _orderService.CreateOrderAsync(request);
                 return CreatedAtAction(nameof(GetOrder), new { id = response.OrderId }, response);
             }
-            catch (DomainException ex)
-            {
-                return BadRequest(new { ErrorCode = ex.ErrorCode, ex.Message, ex.Details });
-            }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error creating order");
-                return StatusCode(500, new { Message = "Internal server error" });
+                _logger.LogError(ex, "Error creating order in controller");
+                throw ex;
             }
         }
 
@@ -57,6 +55,8 @@ namespace ElvaOrderServer.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [Produces("application/json")]
         public async Task<IActionResult> GetOrder(Guid id)
         {
             try
@@ -64,15 +64,10 @@ namespace ElvaOrderServer.API.Controllers
                 var order = await _orderService.GetOrderByIdAsync(id);
                 return Ok(order);
             }
-            catch (OrderNotFoundException ex)
-            {
-                _logger.LogWarning("Order not found: {OrderId}", ex.OrderId);
-                return NotFound(new { ex.OrderId, ex.Message });
-            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving order {OrderId}", id);
-                return StatusCode(500, new { Message = "Internal server error" });
+                throw ex;
             }
         }
     }

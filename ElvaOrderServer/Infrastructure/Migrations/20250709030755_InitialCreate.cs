@@ -18,7 +18,7 @@ namespace ElvaOrderServer.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    CustomerName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    CustomerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
@@ -49,11 +49,11 @@ namespace ElvaOrderServer.Infrastructure.Migrations
 
             migrationBuilder.InsertData(
                 table: "Orders",
-                columns: new[] { "Id", "CreatedAt", "CustomerName" },
+                columns: new[] { "Id", "CreatedAt", "CustomerId" },
                 values: new object[,]
                 {
-                    { new Guid("a8b3c7d0-9e1f-4a6b-8c3d-2e5f4a6b8c9d"), new DateTime(2023, 6, 15, 10, 30, 0, 0, DateTimeKind.Utc), "John Smith" },
-                    { new Guid("b9c4d8e1-0f2a-5b7c-9d3e-1f6a7b8c9d0e"), new DateTime(2023, 6, 16, 14, 45, 0, 0, DateTimeKind.Utc), "Emma Johnson" }
+                    { new Guid("a8b3c7d0-9e1f-4a6b-8c3d-2e5f4a6b8c9d"), new DateTime(2023, 6, 15, 10, 30, 0, 0, DateTimeKind.Utc), new Guid("c1d2e3f4-5a6b-7c8d-9e0f-1a2b3c4d5e6f") },
+                    { new Guid("b9c4d8e1-0f2a-5b7c-9d3e-1f6a7b8c9d0e"), new DateTime(2023, 6, 16, 14, 45, 0, 0, DateTimeKind.Utc), new Guid("d3e4f5a6-7b8c-9d0e-1f2a-3b4c5d6e7f8a") }
                 });
 
             migrationBuilder.InsertData(

@@ -1,4 +1,7 @@
-﻿using ElvaOrderServer.Domain.Entities;
+﻿using ElvaOrderServer.API.Controllers;
+using ElvaOrderServer.Domain.Constants;
+using ElvaOrderServer.Domain.Entities;
+using ElvaOrderServer.Domain.Exceptions;
 using ElvaOrderServer.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,16 +10,25 @@ namespace ElvaOrderServer.Infrastructure.Repositories
     public class OrderRepository : IOrderRepository
     {
         private readonly OrdersDbContext _context;
+        private readonly ILogger<OrdersController> _logger;
 
-        public OrderRepository(OrdersDbContext context)
+        public OrderRepository(OrdersDbContext context, ILogger<OrdersController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         public async Task AddAsync(Order order)
         {
-            await _context.Orders.AddAsync(order);
-            await _context.SaveChangesAsync();
+            try
+            {                
+                await _context.Orders.AddAsync(order);
+                await _context.SaveChangesAsync();
+            }catch (Exception ex){
+                _logger.LogError(ex, "Error adding order on infrastructure");
+                throw new InfrastructureException("Faied to save order in repository.", ErrorTypes.NotFound);              
+            }
+            
         }
 
         public async Task<Order> GetByIdAsync(Guid id)
