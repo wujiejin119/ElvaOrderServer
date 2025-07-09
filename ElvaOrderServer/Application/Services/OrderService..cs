@@ -87,7 +87,7 @@ namespace ElvaOrderServer.Application.Services
             if (hasDuplicates)
             {
                 _logger.LogError("duplicate product");
-                throw new AppException("Product not found", ErrorTypes.InvalidParameter);
+                throw new AppException("Duplicate product IDs are not allowed", ErrorTypes.InvalidParameter);
             }
 
         }
