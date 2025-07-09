@@ -55,16 +55,16 @@ namespace ElvaOrderServer.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [Produces("application/json")]
-        public async Task<IActionResult> GetOrder(Guid id)
+        public async Task<IActionResult> GetOrder(long orderId)
         {
             try
             {
-                var order = await _orderService.GetOrderByIdAsync(id);
+                var order = await _orderService.GetOrderByOrderIdAsync(orderId);
                 return Ok(order);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving order {OrderId}", id);
+                _logger.LogError(ex, "Error retrieving order {OrderId}", orderId);
                 throw ex;
             }
         }

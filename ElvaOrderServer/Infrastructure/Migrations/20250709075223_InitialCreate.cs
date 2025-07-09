@@ -17,8 +17,11 @@ namespace ElvaOrderServer.Infrastructure.Migrations
                 name: "Orders",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    CustomerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ExternalOrderId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    OrderId = table.Column<long>(type: "bigint", nullable: false),
+                    CustomerId = table.Column<long>(type: "bigint", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
@@ -30,11 +33,11 @@ namespace ElvaOrderServer.Infrastructure.Migrations
                 name: "OrderItems",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     ProductId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Quantity = table.Column<int>(type: "int", nullable: false),
-                    OrderId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    Quantity = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    OrderId = table.Column<long>(type: "bigint", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -49,11 +52,11 @@ namespace ElvaOrderServer.Infrastructure.Migrations
 
             migrationBuilder.InsertData(
                 table: "Orders",
-                columns: new[] { "Id", "CreatedAt", "CustomerId" },
+                columns: new[] { "Id", "CreatedAt", "CustomerId", "ExternalOrderId", "OrderId" },
                 values: new object[,]
                 {
-                    { new Guid("a8b3c7d0-9e1f-4a6b-8c3d-2e5f4a6b8c9d"), new DateTime(2023, 6, 15, 10, 30, 0, 0, DateTimeKind.Utc), new Guid("c1d2e3f4-5a6b-7c8d-9e0f-1a2b3c4d5e6f") },
-                    { new Guid("b9c4d8e1-0f2a-5b7c-9d3e-1f6a7b8c9d0e"), new DateTime(2023, 6, 16, 14, 45, 0, 0, DateTimeKind.Utc), new Guid("d3e4f5a6-7b8c-9d0e-1f2a-3b4c5d6e7f8a") }
+                    { 1000000001L, new DateTime(2025, 7, 9, 7, 52, 16, 668, DateTimeKind.Utc).AddTicks(9691), 3000000001L, new Guid("a3e8f1b2-4c6d-4e5f-9a0b-1c2d3e4f5a6b"), 2000000001L },
+                    { 1000000002L, new DateTime(2025, 7, 9, 7, 52, 16, 668, DateTimeKind.Utc).AddTicks(9698), 3000000002L, new Guid("7d8e9f0a-1b2c-3d4e-5f6a-7b8c9d0e1f2a"), 2000000002L }
                 });
 
             migrationBuilder.InsertData(
@@ -61,16 +64,27 @@ namespace ElvaOrderServer.Infrastructure.Migrations
                 columns: new[] { "Id", "OrderId", "ProductId", "Quantity" },
                 values: new object[,]
                 {
-                    { 1, new Guid("a8b3c7d0-9e1f-4a6b-8c3d-2e5f4a6b8c9d"), new Guid("f47ac10b-58cc-4372-a567-0e02b2c3d479"), 2 },
-                    { 2, new Guid("a8b3c7d0-9e1f-4a6b-8c3d-2e5f4a6b8c9d"), new Guid("550e8400-e29b-41d4-a716-446655440000"), 1 },
-                    { 3, new Guid("b9c4d8e1-0f2a-5b7c-9d3e-1f6a7b8c9d0e"), new Guid("550e8400-e29b-41d4-a716-446655440000"), 3 },
-                    { 4, new Guid("b9c4d8e1-0f2a-5b7c-9d3e-1f6a7b8c9d0e"), new Guid("6ba7b810-9dad-11d1-80b4-00c04fd430c8"), 1 }
+                    { 5000000001L, 1000000001L, new Guid("f47ac10b-58cc-4372-a567-0e02b2c3d479"), 2m },
+                    { 5000000002L, 1000000001L, new Guid("550e8400-e29b-41d4-a716-446655440000"), 1m },
+                    { 5000000003L, 1000000002L, new Guid("550e8400-e29b-41d4-a716-446655440000"), 3m }
                 });
 
             migrationBuilder.CreateIndex(
                 name: "IX_OrderItems_OrderId",
                 table: "OrderItems",
                 column: "OrderId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Orders_ExternalOrderId",
+                table: "Orders",
+                column: "ExternalOrderId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Orders_OrderId",
+                table: "Orders",
+                column: "OrderId",
+                unique: true);
         }
 
         /// <inheritdoc />

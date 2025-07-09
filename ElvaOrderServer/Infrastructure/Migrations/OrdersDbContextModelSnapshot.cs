@@ -24,51 +24,69 @@ namespace ElvaOrderServer.Infrastructure.Migrations
 
             modelBuilder.Entity("ElvaOrderServer.Domain.Entities.Order", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid>("CustomerId")
+                    b.Property<long>("CustomerId")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid>("ExternalOrderId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<long>("OrderId")
+                        .HasColumnType("bigint");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("ExternalOrderId")
+                        .IsUnique();
+
+                    b.HasIndex("OrderId")
+                        .IsUnique();
 
                     b.ToTable("Orders");
 
                     b.HasData(
                         new
                         {
-                            Id = new Guid("a8b3c7d0-9e1f-4a6b-8c3d-2e5f4a6b8c9d"),
-                            CreatedAt = new DateTime(2023, 6, 15, 10, 30, 0, 0, DateTimeKind.Utc),
-                            CustomerId = new Guid("c1d2e3f4-5a6b-7c8d-9e0f-1a2b3c4d5e6f")
+                            Id = 1000000001L,
+                            CreatedAt = new DateTime(2025, 7, 9, 7, 52, 16, 668, DateTimeKind.Utc).AddTicks(9691),
+                            CustomerId = 3000000001L,
+                            ExternalOrderId = new Guid("a3e8f1b2-4c6d-4e5f-9a0b-1c2d3e4f5a6b"),
+                            OrderId = 2000000001L
                         },
                         new
                         {
-                            Id = new Guid("b9c4d8e1-0f2a-5b7c-9d3e-1f6a7b8c9d0e"),
-                            CreatedAt = new DateTime(2023, 6, 16, 14, 45, 0, 0, DateTimeKind.Utc),
-                            CustomerId = new Guid("d3e4f5a6-7b8c-9d0e-1f2a-3b4c5d6e7f8a")
+                            Id = 1000000002L,
+                            CreatedAt = new DateTime(2025, 7, 9, 7, 52, 16, 668, DateTimeKind.Utc).AddTicks(9698),
+                            CustomerId = 3000000002L,
+                            ExternalOrderId = new Guid("7d8e9f0a-1b2c-3d4e-5f6a-7b8c9d0e1f2a"),
+                            OrderId = 2000000002L
                         });
                 });
 
             modelBuilder.Entity("ElvaOrderServer.Domain.Entities.OrderItem", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<Guid>("OrderId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<long>("OrderId")
+                        .HasColumnType("bigint");
 
                     b.Property<Guid>("ProductId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
+                    b.Property<decimal>("Quantity")
+                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
 
@@ -79,31 +97,24 @@ namespace ElvaOrderServer.Infrastructure.Migrations
                     b.HasData(
                         new
                         {
-                            Id = 1,
-                            OrderId = new Guid("a8b3c7d0-9e1f-4a6b-8c3d-2e5f4a6b8c9d"),
+                            Id = 5000000001L,
+                            OrderId = 1000000001L,
                             ProductId = new Guid("f47ac10b-58cc-4372-a567-0e02b2c3d479"),
-                            Quantity = 2
+                            Quantity = 2m
                         },
                         new
                         {
-                            Id = 2,
-                            OrderId = new Guid("a8b3c7d0-9e1f-4a6b-8c3d-2e5f4a6b8c9d"),
+                            Id = 5000000002L,
+                            OrderId = 1000000001L,
                             ProductId = new Guid("550e8400-e29b-41d4-a716-446655440000"),
-                            Quantity = 1
+                            Quantity = 1m
                         },
                         new
                         {
-                            Id = 3,
-                            OrderId = new Guid("b9c4d8e1-0f2a-5b7c-9d3e-1f6a7b8c9d0e"),
+                            Id = 5000000003L,
+                            OrderId = 1000000002L,
                             ProductId = new Guid("550e8400-e29b-41d4-a716-446655440000"),
-                            Quantity = 3
-                        },
-                        new
-                        {
-                            Id = 4,
-                            OrderId = new Guid("b9c4d8e1-0f2a-5b7c-9d3e-1f6a7b8c9d0e"),
-                            ProductId = new Guid("6ba7b810-9dad-11d1-80b4-00c04fd430c8"),
-                            Quantity = 1
+                            Quantity = 3m
                         });
                 });
 

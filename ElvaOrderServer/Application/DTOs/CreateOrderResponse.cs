@@ -2,6 +2,6 @@
 {
     public class CreateOrderResponse
     {
-        public Guid OrderId { get; set; }
+        public long OrderId { get; set; }  
     }
 }

@@ -4,7 +4,7 @@ namespace ElvaOrderServer.Infrastructure.Repositories
 {
     public interface IOrderRepository
     {
-        Task<Order> GetByIdAsync(Guid id);
+        Task<Order> GetByOrderIdAsync(long id);
         Task AddAsync(Order order);
     }
 }

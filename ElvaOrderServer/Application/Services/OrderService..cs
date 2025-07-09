@@ -32,9 +32,10 @@ namespace ElvaOrderServer.Application.Services
 
                 validateFields(order);
 
+                _logger.LogInformation("Order created: {OrderId}, ExternalId: {ExternalId}",
+                    order.OrderId, order.ExternalOrderId);
 
-                _logger.LogInformation("Order created: {OrderId}", order.Id);
-                return new CreateOrderResponse { OrderId = order.Id };
+                return new CreateOrderResponse { OrderId = order.OrderId };
             }
             catch (DomainException ex)
             {
@@ -48,13 +49,13 @@ namespace ElvaOrderServer.Application.Services
             }
         }
 
-        public async Task<OrderDto> GetOrderByIdAsync(Guid id)
+        public async Task<OrderDto> GetOrderByOrderIdAsync(long orderId)
         {
-            var order = await _orderRepository.GetByIdAsync(id);
+            var order = await _orderRepository.GetByOrderIdAsync(orderId);
 
             if (order is null)
             {
-                _logger.LogWarning("Order not found: {OrderId}", id);
+                _logger.LogWarning("Order not found: {OrderId}", orderId);
                 throw new AppException("Order not found", ErrorTypes.NotFound);
             }
 
@@ -67,12 +68,6 @@ namespace ElvaOrderServer.Application.Services
             // if (!await _customerRepository.ExistsAsync(customerId))
             //if (!await _productRepository.ExistsAsync(item.ProductId))
 
-
-            if (order.CustomerId.Equals(nonExistGuid)|| (order.CustomerId.Equals(Guid.Empty)))
-            {
-                _logger.LogError("Customer not found");
-                throw new AppException("Customer not found", ErrorTypes.NotFound);
-            }
 
             if (order.Items.Any(item => item.ProductId.Equals(nonExistGuid) || item.ProductId.Equals(Guid.Empty) ))// not 00000000-0000-0000-0000-000000000000
             {

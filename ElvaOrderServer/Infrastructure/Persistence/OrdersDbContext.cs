@@ -16,8 +16,15 @@ namespace ElvaOrderServer.Infrastructure.Persistence
             modelBuilder.Entity<Order>(entity =>
             {
                 entity.HasKey(o => o.Id);
+                entity.Property(o => o.Id).ValueGeneratedOnAdd();
+
+                entity.Property(o => o.ExternalOrderId).IsRequired();
+                entity.Property(o => o.OrderId).IsRequired();
                 entity.Property(o => o.CustomerId).IsRequired();
                 entity.Property(o => o.CreatedAt).IsRequired();
+
+                entity.HasIndex(o => o.ExternalOrderId).IsUnique();
+                entity.HasIndex(o => o.OrderId).IsUnique();
 
                 entity.HasMany(o => o.Items)
                 .WithOne(i => i.Order)
@@ -40,65 +47,49 @@ namespace ElvaOrderServer.Infrastructure.Persistence
 
         private void SeedData(ModelBuilder modelBuilder)
         {
-
-            var order1Id = new Guid("a8b3c7d0-9e1f-4a6b-8c3d-2e5f4a6b8c9d");
-            var order2Id = new Guid("b9c4d8e1-0f2a-5b7c-9d3e-1f6a7b8c9d0e");
-
-            var customer1Id = new Guid("c1d2e3f4-5a6b-7c8d-9e0f-1a2b3c4d5e6f");
-            var customer2Id = new Guid("d3e4f5a6-7b8c-9d0e-1f2a-3b4c5d6e7f8a");
-
-            var product1Id = new Guid("f47ac10b-58cc-4372-a567-0e02b2c3d479");
-            var product2Id = new Guid("550e8400-e29b-41d4-a716-446655440000");
-            var product3Id = new Guid("6ba7b810-9dad-11d1-80b4-00c04fd430c8");
-
             modelBuilder.Entity<Order>().HasData(
                 new Order
                 {
-                    Id = order1Id,
-                    CustomerId = customer1Id,
-                    CreatedAt = new DateTime(2023, 6, 15, 10, 30, 0, DateTimeKind.Utc)
+                    Id = 1000000001L,
+                    ExternalOrderId = Guid.Parse("a3e8f1b2-4c6d-4e5f-9a0b-1c2d3e4f5a6b"),
+                    OrderId = 2000000001L,
+                    CustomerId = 3000000001L,
+                    CreatedAt = DateTime.UtcNow
                 },
                 new Order
                 {
-                    Id = order2Id,
-                    CustomerId = customer2Id,
-                    CreatedAt = new DateTime(2023, 6, 16, 14, 45, 0, DateTimeKind.Utc)
+                    Id = 1000000002L,
+                    ExternalOrderId = Guid.Parse("7d8e9f0a-1b2c-3d4e-5f6a-7b8c9d0e1f2a"),
+                    OrderId = 2000000002L,
+                    CustomerId = 3000000002L,
+                    CreatedAt = DateTime.UtcNow
                 }
             );
 
-            modelBuilder.Entity<OrderItem>().HasData(
 
+            modelBuilder.Entity<OrderItem>().HasData(
                 new OrderItem
                 {
-                    Id = 1,
-                    OrderId = order1Id,
-                    ProductId = product1Id,
+                    Id = 5000000001L,
+                    OrderId = 1000000001L,
+                    ProductId = Guid.Parse("f47ac10b-58cc-4372-a567-0e02b2c3d479"),
                     Quantity = 2
                 },
                 new OrderItem
                 {
-                    Id = 2,
-                    OrderId = order1Id,
-                    ProductId = product2Id,
+                    Id = 5000000002L,
+                    OrderId = 1000000001L,
+                    ProductId = Guid.Parse("550e8400-e29b-41d4-a716-446655440000"),
                     Quantity = 1
                 },
-
                 new OrderItem
                 {
-                    Id = 3,
-                    OrderId = order2Id,
-                    ProductId = product2Id,
+                    Id = 5000000003L,
+                    OrderId = 1000000002L,
+                    ProductId = Guid.Parse("550e8400-e29b-41d4-a716-446655440000"),
                     Quantity = 3
-                },
-                new OrderItem
-                {
-                    Id = 4,
-                    OrderId = order2Id,
-                    ProductId = product3Id,
-                    Quantity = 1
                 }
             );
-
         }
     }
 }
