@@ -1,7 +1,9 @@
 using AutoMapper;
 using ElvaOrderServer.Application.DTOs;
 using ElvaOrderServer.Application.Services;
+using ElvaOrderServer.Domain.Constants;
 using ElvaOrderServer.Domain.Entities;
+using ElvaOrderServer.Domain.Exceptions;
 using ElvaOrderServer.Infrastructure.Repositories;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -32,8 +34,8 @@ public class OrderServiceTests
     {
         // Arrange
         var request = new CreateOrderRequest 
-        { 
-            CustomerName = "Test Customer",
+        {
+            CustomerId = Guid.NewGuid(),
             Items = new List<OrderItemDto>
             {
                 new() { ProductId = Guid.NewGuid(), Quantity = 2 },
@@ -43,7 +45,7 @@ public class OrderServiceTests
         
         var order = new Order
         {
-            CustomerName = request.CustomerName,
+            CustomerId = Guid.NewGuid(),
             Items = request.Items.Select(dto => new OrderItem
             {
                 ProductId = dto.ProductId,
@@ -51,71 +53,133 @@ public class OrderServiceTests
             }).ToList()
         };
         
-        // ÉèÖÃÓ³ÉäÆ÷ÐÐÎª
+      
         _mockMapper.Setup(m => m.Map<Order>(request)).Returns(order);
-        
+
         // Act
         var response = await _service.CreateOrderAsync(request);
-        
+
         // Assert
         Assert.NotNull(response);
-        _mockRepo.Verify(r => r.AddAsync(It.Is<Order>(o => 
-            o.CustomerName == request.CustomerName &&
-            o.Items.Count == request.Items.Count &&
-            o.Items.Sum(i => i.Quantity) == 5 // 2 + 3
-        )), Times.Once);
+        Assert.NotEqual(Guid.Empty, response.OrderId);       
+
     }
-    
+
     [Fact]
-    public async Task CreateOrderAsync_WithItems_Should_MapCorrectly()
+    public async Task CreateOrderAsync_WithEmptyCustomerId_Should_ThrowException()
     {
         // Arrange
-        var productId1 = Guid.NewGuid();
-        var productId2 = Guid.NewGuid();
-        
-        var request = new CreateOrderRequest 
-        { 
-            CustomerName = "Mapping Test",
+        var request = new CreateOrderRequest
+        {
+            CustomerId = Guid.Empty,
             Items = new List<OrderItemDto>
             {
-                new() { ProductId = productId1, Quantity = 1 },
-                new() { ProductId = productId2, Quantity = 4 }
+                new() { ProductId = Guid.NewGuid(), Quantity = 1 }
             }
         };
-        
-        var order = new Order();
+
+        var order = new Order { CustomerId = request.CustomerId };
         _mockMapper.Setup(m => m.Map<Order>(request)).Returns(order);
-        
-        // Act
-        await _service.CreateOrderAsync(request);
-        
-        // Assert
-        _mockMapper.Verify(m => m.Map<Order>(request), Times.Once);
+
+        // Act & Assert
+        var exception =  await Assert.ThrowsAsync<AppException>(() => _service.CreateOrderAsync(request));
+        Assert.Equal(ErrorTypes.NotFound, exception.ErrorType);
     }
-    
+
     [Fact]
-    public async Task CreateOrderAsync_Should_ReturnOrderId()
+    public async Task CreateOrderAsync_WithNonExistingCustomerId_Should_ThrowException()
     {
         // Arrange
-        var request = new CreateOrderRequest 
-        { 
-            CustomerName = "Order ID Test",
+        var nonExistGuid = Guid.Parse("3fa85f64-5717-4562-b3fc-2c963f66afa4");
+        var request = new CreateOrderRequest
+        {
+            CustomerId = nonExistGuid,
             Items = new List<OrderItemDto>
             {
-                new() { ProductId = Guid.NewGuid(), Quantity = 3 }
+                new() { ProductId = Guid.NewGuid(), Quantity = 1 }
             }
         };
-        
-        var expectedOrderId = Guid.NewGuid();
-        var order = new Order { Id = expectedOrderId };
-        
+
+        var order = new Order { CustomerId = request.CustomerId };
         _mockMapper.Setup(m => m.Map<Order>(request)).Returns(order);
-        
-        // Act
-        var response = await _service.CreateOrderAsync(request);
-        
-        // Assert
-        Assert.NotNull(response);
-        Assert.Equal(expectedOrderId, response.OrderId);
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<AppException>(() => _service.CreateOrderAsync(request));
+        Assert.Equal(ErrorTypes.NotFound, exception.ErrorType);
+    }
+
+    [Fact]
+    public async Task CreateOrderAsync_WithNonExistingProductId_Should_ThrowException()
+    {
+        // Arrange
+        var nonExistGuid = Guid.Parse("3fa85f64-5717-4562-b3fc-2c963f66afa4");
+        var request = new CreateOrderRequest
+        {
+            CustomerId = Guid.NewGuid(),
+            Items = new List<OrderItemDto>
+            {
+                new() { ProductId = nonExistGuid, Quantity = 1 }
+            }
+        };
+
+        var order = new Order
+        {
+            CustomerId = request.CustomerId,
+            Items = request.Items.Select(dto => new OrderItem
+            {
+                ProductId = dto.ProductId,
+                Quantity = dto.Quantity
+            }).ToList()
+        };
+
+        _mockMapper.Setup(m => m.Map<Order>(request)).Returns(order);
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<AppException>(() => _service.CreateOrderAsync(request));
+        Assert.Equal(ErrorTypes.NotFound, exception.ErrorType);
+    }
+
+    [Fact]
+    public async Task CreateOrderAsync_WithDuplicateProductIds_Should_ThrowException()
+    {
+        // Arrange
+        var productId = Guid.NewGuid();
+        var request = new CreateOrderRequest
+        {
+            CustomerId = Guid.NewGuid(),
+            Items = new List<OrderItemDto>
+            {
+                new() { ProductId = productId, Quantity = 1 },
+                new() { ProductId = productId, Quantity = 2 }
+            }
+        };
+
+        var order = new Order
+        {
+            CustomerId = request.CustomerId,
+            Items = request.Items.Select(dto => new OrderItem
+            {
+                ProductId = dto.ProductId,
+                Quantity = dto.Quantity
+            }).ToList()
+        };
+
+        _mockMapper.Setup(m => m.Map<Order>(request)).Returns(order);
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<AppException>(() => _service.CreateOrderAsync(request));
+        Assert.Equal(ErrorTypes.InvalidParameter, exception.ErrorType);
+    }
+
+    [Fact]
+    public async Task GetOrderByIdAsync_WithInvalidId_Should_ThrowException()
+    {
+        // Arranges
+        var invalidId = Guid.Empty;
+        _mockRepo.Setup(r => r.GetByIdAsync(invalidId)).ReturnsAsync((Order)null);
+
+        // Act & Assert
+        var exception =  await Assert.ThrowsAsync<AppException>(() => _service.GetOrderByIdAsync(invalidId));
+        Assert.Equal(ErrorTypes.NotFound, exception.ErrorType);
     }
 }

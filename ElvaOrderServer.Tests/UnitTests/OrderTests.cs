@@ -58,20 +58,4 @@ public class OrderTests
         Assert.Equal(2, order.Items.Count);
         Assert.Equal(4, order.TotalQuantity);
     }
-    
-    [Fact]
-    public void AddItem_DuplicateProduct_Should_Throw()
-    {
-        // Arrange
-        var order = new Order();
-        var productId = Guid.NewGuid();
-        var item1 = new OrderItem { ProductId = productId, Quantity = 1 };
-        var item2 = new OrderItem { ProductId = productId, Quantity = 2 };
-        
-        // Act
-        order.AddItem(item1); 
-        
-        // Assert
-        var exception = Assert.Throws<DomainException>(() => order.AddItem(item2));
-    }
 }
