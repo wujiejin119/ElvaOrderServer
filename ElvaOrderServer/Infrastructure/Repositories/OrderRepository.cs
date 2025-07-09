@@ -3,7 +3,7 @@ using ElvaOrderServer.Domain.Constants;
 using ElvaOrderServer.Domain.Entities;
 using ElvaOrderServer.Domain.Exceptions;
 using ElvaOrderServer.Infrastructure.Persistence;
-using IdGen;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Snowflake.Net;
 
@@ -29,18 +29,29 @@ namespace ElvaOrderServer.Infrastructure.Repositories
                 order.OrderId = _idWorker.NextId();
                 await _context.Orders.AddAsync(order);
                 await _context.SaveChangesAsync();
-            }catch (Exception ex){
+            }
+            catch (DbUpdateException ex) when (ex.InnerException is SqlException sqlEx)
+            {
+                if (sqlEx.Number == 2601 || sqlEx.Number == 2627)
+                {
+                    _logger.LogError(ex, "Duplicate key in SQL");
+
+                    throw new InfrastructureException("Duplicate key", ErrorTypes.InvalidParameter);
+                }
+                throw;
+            }
+            catch (Exception ex){
                 _logger.LogError(ex, "Error adding order on infrastructure");
-                throw new InfrastructureException("Faied to save order in repository.", ErrorTypes.General);              
+                throw new InfrastructureException("Faied to save order in repository", ErrorTypes.General);              
             }
             
         }
 
-        public async Task<Order> GetByOrderIdAsync(long id)
+        public async Task<Order> GetByOrderIdAsync(long orderId)
         {
             return await _context.Orders
                 .Include(o => o.Items)
-                .FirstOrDefaultAsync(o => o.Id == id);
+                .FirstOrDefaultAsync(o => o.OrderId == orderId);
         }
     }
 }

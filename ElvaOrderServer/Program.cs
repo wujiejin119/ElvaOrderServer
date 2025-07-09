@@ -3,7 +3,6 @@ using ElvaOrderServer.Application.Services;
 using ElvaOrderServer.Infrastructure.Persistence;
 using ElvaOrderServer.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Snowflake.Net;
 
 public class Program

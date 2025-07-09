@@ -36,7 +36,7 @@ namespace ElvaOrderServer.API.Controllers
             try
             {
                 var response = await _orderService.CreateOrderAsync(request);
-                return CreatedAtAction(nameof(GetOrder), new { id = response.OrderId }, response);
+                return Ok(response);
             }
             catch (Exception ex)
             {
@@ -48,9 +48,9 @@ namespace ElvaOrderServer.API.Controllers
         /// <summary>
         /// Retrieves an order by ID
         /// </summary>
-        /// <param name="id">Order ID</param>
+        /// <param name="orderId">Order ID</param>
         /// <returns>Order details</returns>
-        [HttpGet("{id}")]
+        [HttpGet("{orderId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -60,6 +60,10 @@ namespace ElvaOrderServer.API.Controllers
             try
             {
                 var order = await _orderService.GetOrderByOrderIdAsync(orderId);
+                if (order == null)
+                {
+                    return NotFound();
+                }
                 return Ok(order);
             }
             catch (Exception ex)
