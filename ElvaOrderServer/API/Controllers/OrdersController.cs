@@ -36,7 +36,7 @@ namespace ElvaOrderServer.API.Controllers
             try
             {
                 var response = await _orderService.CreateOrderAsync(request);
-                return Ok(response);
+                return CreatedAtAction(nameof(GetOrder), new { orderId = response.OrderId }, response);
             }
             catch (Exception ex)
             {

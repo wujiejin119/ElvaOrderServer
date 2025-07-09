@@ -46,7 +46,8 @@ namespace ElvaOrderServer.API.IntegrationTests
             // Arrange
             var request = new CreateOrderRequest
             {
-                CustomerId = Guid.NewGuid(),
+                CustomerId = 1,
+                ExternalOrderId = Guid.NewGuid(),
                 Items = new List<OrderItemDto>
                 {
                     new() { ProductId = Guid.NewGuid(), Quantity = 2 },
@@ -62,11 +63,11 @@ namespace ElvaOrderServer.API.IntegrationTests
 
             var createdOrder = await response.Content.ReadFromJsonAsync<CreateOrderResponse>();
             Assert.NotNull(createdOrder);
-            Assert.NotEqual(Guid.Empty, createdOrder.OrderId);
+            Assert.True(createdOrder.OrderId > 0);
 
             var dbOrder = await _dbContext.Orders
                 .Include(o => o.Items)
-                .FirstOrDefaultAsync(o => o.Id == createdOrder.OrderId);
+                .FirstOrDefaultAsync(o => o.OrderId == createdOrder.OrderId);
 
             Assert.NotNull(dbOrder);
             Assert.Equal(request.CustomerId, dbOrder.CustomerId);
@@ -80,7 +81,8 @@ namespace ElvaOrderServer.API.IntegrationTests
             // Arrange
             var invalidRequest = new CreateOrderRequest
             {
-                CustomerId = Guid.NewGuid(),
+                CustomerId = 1,
+                ExternalOrderId = Guid.NewGuid(),
                 Items = new List<OrderItemDto>()
             };
 
@@ -97,7 +99,8 @@ namespace ElvaOrderServer.API.IntegrationTests
             // Arrange
             var invalidRequest = new CreateOrderRequest
             {
-                CustomerId = Guid.Empty,
+                CustomerId = -1,
+                ExternalOrderId = Guid.NewGuid(),
                 Items = new List<OrderItemDto>
                 {
                     new() { ProductId = Guid.NewGuid(), Quantity = 2 },
@@ -109,7 +112,7 @@ namespace ElvaOrderServer.API.IntegrationTests
             var response = await _client.PostAsJsonAsync("/api/orders", invalidRequest);
 
             // Assert
-            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
 
         [Fact]
@@ -119,7 +122,8 @@ namespace ElvaOrderServer.API.IntegrationTests
             var duplicateProductId = Guid.NewGuid();
             var request = new CreateOrderRequest
             {
-                CustomerId = Guid.NewGuid(),
+                CustomerId = 1,
+                ExternalOrderId = Guid.NewGuid(),
                 Items = new List<OrderItemDto>
                 {
                     new() { ProductId = duplicateProductId, Quantity = 1 },
@@ -139,7 +143,8 @@ namespace ElvaOrderServer.API.IntegrationTests
         {            
             var testOrder = new Order
             {
-                CustomerId = Guid.NewGuid(),
+                CustomerId = 1,
+                ExternalOrderId = Guid.NewGuid(),
                 Items = new List<OrderItem>
                 {
                     new OrderItem { ProductId = Guid.NewGuid(), Quantity = 1 }
@@ -150,7 +155,7 @@ namespace ElvaOrderServer.API.IntegrationTests
             await _dbContext.SaveChangesAsync();
 
             // Act
-            var response = await _client.GetAsync($"/api/orders/{testOrder.Id}");
+            var response = await _client.GetAsync($"/api/orders/{testOrder.OrderId}");
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -165,7 +170,7 @@ namespace ElvaOrderServer.API.IntegrationTests
         public async Task GetOrder_NonExistingId_ShouldReturn404NotFound()
         {
             // Arrange
-            var nonExistingId = Guid.NewGuid();
+            var nonExistingId = 99999999999999999;
 
             // Act
             var response = await _client.GetAsync($"/api/orders/{nonExistingId}");

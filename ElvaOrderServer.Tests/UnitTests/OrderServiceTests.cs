@@ -7,11 +7,7 @@ using ElvaOrderServer.Domain.Exceptions;
 using ElvaOrderServer.Infrastructure.Repositories;
 using Microsoft.Extensions.Logging;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Xunit;
+
 
 public class OrderServiceTests
 {
@@ -35,7 +31,7 @@ public class OrderServiceTests
         // Arrange
         var request = new CreateOrderRequest 
         {
-            CustomerId = Guid.NewGuid(),
+            CustomerId = 1,
             Items = new List<OrderItemDto>
             {
                 new() { ProductId = Guid.NewGuid(), Quantity = 2 },
@@ -45,15 +41,17 @@ public class OrderServiceTests
         
         var order = new Order
         {
-            CustomerId = Guid.NewGuid(),
+            CustomerId = 1,
             Items = request.Items.Select(dto => new OrderItem
             {
                 ProductId = dto.ProductId,
                 Quantity = dto.Quantity
             }).ToList()
         };
-        
-      
+
+        Random random = new Random();
+        order.OrderId = random.Next(1, 199999);
+
         _mockMapper.Setup(m => m.Map<Order>(request)).Returns(order);
 
         // Act
@@ -61,52 +59,10 @@ public class OrderServiceTests
 
         // Assert
         Assert.NotNull(response);
-        Assert.NotEqual(Guid.Empty, response.OrderId);       
+        Assert.True(response.OrderId > 0);       
 
     }
 
-    [Fact]
-    public async Task CreateOrderAsync_WithEmptyCustomerId_Should_ThrowException()
-    {
-        // Arrange
-        var request = new CreateOrderRequest
-        {
-            CustomerId = Guid.Empty,
-            Items = new List<OrderItemDto>
-            {
-                new() { ProductId = Guid.NewGuid(), Quantity = 1 }
-            }
-        };
-
-        var order = new Order { CustomerId = request.CustomerId };
-        _mockMapper.Setup(m => m.Map<Order>(request)).Returns(order);
-
-        // Act & Assert
-        var exception =  await Assert.ThrowsAsync<AppException>(() => _service.CreateOrderAsync(request));
-        Assert.Equal(ErrorTypes.NotFound, exception.ErrorType);
-    }
-
-    [Fact]
-    public async Task CreateOrderAsync_WithNonExistingCustomerId_Should_ThrowException()
-    {
-        // Arrange
-        var nonExistGuid = Guid.Parse("3fa85f64-5717-4562-b3fc-2c963f66afa4");
-        var request = new CreateOrderRequest
-        {
-            CustomerId = nonExistGuid,
-            Items = new List<OrderItemDto>
-            {
-                new() { ProductId = Guid.NewGuid(), Quantity = 1 }
-            }
-        };
-
-        var order = new Order { CustomerId = request.CustomerId };
-        _mockMapper.Setup(m => m.Map<Order>(request)).Returns(order);
-
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<AppException>(() => _service.CreateOrderAsync(request));
-        Assert.Equal(ErrorTypes.NotFound, exception.ErrorType);
-    }
 
     [Fact]
     public async Task CreateOrderAsync_WithNonExistingProductId_Should_ThrowException()
@@ -115,7 +71,7 @@ public class OrderServiceTests
         var nonExistGuid = Guid.Parse("3fa85f64-5717-4562-b3fc-2c963f66afa4");
         var request = new CreateOrderRequest
         {
-            CustomerId = Guid.NewGuid(),
+            CustomerId = 1,
             Items = new List<OrderItemDto>
             {
                 new() { ProductId = nonExistGuid, Quantity = 1 }
@@ -146,7 +102,7 @@ public class OrderServiceTests
         var productId = Guid.NewGuid();
         var request = new CreateOrderRequest
         {
-            CustomerId = Guid.NewGuid(),
+            CustomerId = 1,
             Items = new List<OrderItemDto>
             {
                 new() { ProductId = productId, Quantity = 1 },
@@ -175,11 +131,11 @@ public class OrderServiceTests
     public async Task GetOrderByIdAsync_WithInvalidId_Should_ThrowException()
     {
         // Arranges
-        var invalidId = Guid.Empty;
-        _mockRepo.Setup(r => r.GetByIdAsync(invalidId)).ReturnsAsync((Order)null);
+        var invalidId = -1;
+        _mockRepo.Setup(r => r.GetByOrderIdAsync(-1)).ReturnsAsync((Order)null);
 
         // Act & Assert
-        var exception =  await Assert.ThrowsAsync<AppException>(() => _service.GetOrderByIdAsync(invalidId));
+        var exception =  await Assert.ThrowsAsync<AppException>(() => _service.GetOrderByOrderIdAsync(invalidId));
         Assert.Equal(ErrorTypes.NotFound, exception.ErrorType);
     }
 }

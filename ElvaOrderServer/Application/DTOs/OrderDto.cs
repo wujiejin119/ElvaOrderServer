@@ -1,7 +1,7 @@
 ﻿namespace ElvaOrderServer.Application.DTOs
 {
     public class OrderDto
-    {
+    {    
         public long Id { get; set; }
         public Guid ExternalOrderId { get; set; }
         public long OrderId { get; set; }
